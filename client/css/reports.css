@@ -261,7 +261,6 @@ main .dataset {
 		right: 0;
 		max-height: 100%;
 		overflow: auto;
-		background-image: radial-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3), rgba(0, 0, 0, 0.1));
 	}
 	.singleton .data-source > .overlay {
 		top: 74px;
@@ -1716,6 +1715,7 @@ main .dataset {
 		grid-auto-rows: calc(50px - (var(--gap) * 4));
 		grid-gap: calc(var(--gap) * 4);
 		padding-top: calc(var(--gap) * 2);
+		background: var(--color-background);
 	}
 	.visualization-canvas.editing > .list {
 		margin-bottom: 200px;
@@ -1733,6 +1733,7 @@ main .dataset {
 			grid-gap: calc(var(--gap) * 2);
 			justify-content: center;
 			align-content: center;
+			background-image: radial-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3), rgba(0, 0, 0, 0.1));;
 		}
 			.visualization-canvas .list .resize-dimentions span {
 				justify-content: center;
