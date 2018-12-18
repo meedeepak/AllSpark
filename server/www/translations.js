@@ -122,7 +122,8 @@ class Translations extends API {
 
 		return await this.mysql.query(`
 			SELECT
-				o.*, l.name
+				o.*, 
+				l.name
 			FROM
 				tb_object_translations o
 			JOIN
