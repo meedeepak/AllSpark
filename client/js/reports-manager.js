@@ -6969,18 +6969,15 @@ class ReportTransformation {
 		const
 			option = {
 				method: 'POST',
-			},
-			parameters = {
-				owner: 'visualization',
-				id: this.id,
-				options: JSON.stringify(this.json.options),
-				type: this.type,
-				title: this.container.querySelector('.transformation-title').value,
 			};
+
+		const json = this.json;
+
+		json.options = JSON.stringify(json.options);
 
 		try {
 
-			await API.call('reports/transformations/update', parameters, option);
+			await API.call('reports/transformations/update', json, option);
 
 			await DataSource.load(true);
 
@@ -7065,6 +7062,9 @@ class ReportTransformation {
 
 		const response = {
 			type: this.key,
+			owner: 'visualization',
+			id: this.id,
+			title: this.container.querySelector('.transformation-title').value
 		};
 
 		return response;
@@ -7185,8 +7185,9 @@ ReportTransformation.types.set('pivot', class ReportTransformationPivot extends 
 			});
 		}
 
-		if(!response.options.rows.length && !response.options.columns.length && !response.options.values.length)
-			return null;
+		if(!response.options.rows.length && !response.options.columns.length && !response.options.values.length) {
+			response.options = {};
+		}
 
 		return response;
 	}
@@ -7327,7 +7328,7 @@ ReportTransformation.types.set('filters', class ReportTransformationFilters exte
 		}
 
 		if(!response.options.filters.length) {
-			return null;
+			response.options = {};
 		}
 
 		return response;
@@ -7630,7 +7631,7 @@ ReportTransformation.types.set('stream', class ReportTransformationStream extend
 		}
 
 		if(!response.options.columns.length) {
-			return null;
+			response.options = {};
 		}
 
 		return response;
@@ -7862,8 +7863,9 @@ ReportTransformation.types.set('sort', class ReportTransformationSort extends Re
 			});
 		}
 
-		if(!response.options.columns.length)
-			return null;
+		if(!response.options.columns.length) {
+			response.options = {};
+		}
 
 		return response;
 	}
