@@ -167,7 +167,7 @@ main .cached-reports table {
 }
 #phrases-translations .translation-list-header{
     background: var(--color-surface);
-	padding: calc(var(--gap) * 2);
+	padding: calc(var(--gap) * 2) calc(var(--gap) * 2);
 }
 #phrases-translations .translation-row{
     padding: 10px 10px;
@@ -183,3 +183,16 @@ main .cached-reports table {
 		background: transparent;
 		color: #e77;
 	}
+	#phrases-translations #phrases-translations-title {
+		display: flex;
+		flex-direction: row;
+	}
+	#phrases-translations #phrases-translations-search {
+		padding: 0 0 calc(var(--gap) * 2);
+	}
+	#phrases-translations.phrases-translations-existing {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+

@@ -514,6 +514,8 @@ Settings.list.set('phrasesTranslations', class PhrasesTranslations extends Setti
 
 		const container = document.createElement('section');
 
+		//todo: required star
+
 		container.innerHTML = `
 		<h1>Phrases Translations</h1>
 		<div class="toolbar">
@@ -521,10 +523,10 @@ Settings.list.set('phrasesTranslations', class PhrasesTranslations extends Setti
 				<button type="submit" id="add-translation" form="add-translation-form"><i class="far fa-save"></i> Add</button>
 			</label>
 		</div>
-		<form class="form" id="add-translation-form">
+		<form class="form block" id="add-translation-form">
 			<label>
 				<span> Phrase</span>
-				<input type="text" name="phrase" class="translationInput" required>
+				<input type="text" name="phrase" required>
 			</label>
 			<label>
 				<span> Locale</span>
@@ -532,11 +534,14 @@ Settings.list.set('phrasesTranslations', class PhrasesTranslations extends Setti
 			</label>
 			<label>
 				<span> Translation</span>
-				<input type="text" name="translation" class="translationInput" required>
+				<input type="text" name="translation" required>
 			</label>
 		</form>
 		
-		<h3>Existing Translations</h3>
+		<div class="phrases-translations-existing">
+			<h3>Existing Translations</h3>
+		</div>
+		<div id="phrases-translations-search"></div>
 		
 		<div class="translation-grid" id="translations-headers"></div>
 		`;
@@ -578,6 +583,47 @@ Settings.list.set('phrasesTranslations', class PhrasesTranslations extends Setti
 		this.containerElement = container;
 
 		return this.containerElement;
+	}
+
+	get searchBar() {
+
+		if(this.searchBarFilter) {
+
+			return this.searchBarFilter;
+		}
+
+		const filters = [
+			{
+				key: 'Id',
+				rowValue: row => [row.id],
+			},
+			{
+				key: 'From',
+				rowValue: row => [row.phrase],
+			},
+			{
+				key: 'locale',
+				rowValue: row => [MetaData.locales.get(row.locale_id)],
+			},
+			{
+				key: 'Translation',
+				rowValue: row => [row.translation],
+			},
+		];
+
+		this.searchBarFilter = new SearchColumnFilters({
+			data: this.response,
+			filters: filters,
+			advanceSearch: true,
+			page,
+		});
+
+		this.container.querySelector('.phrases-translations-existing').insertAdjacentElement('beforeend', this.searchBarFilter.globalSearch.container);
+		this.container.querySelector('#phrases-translations-search').appendChild(this.searchBarFilter.container);
+
+		this.searchBarFilter.on('change', async () => await this.render());
+
+		this.render();
 	}
 
 	async insert() {
@@ -639,6 +685,12 @@ Settings.list.set('phrasesTranslations', class PhrasesTranslations extends Setti
 	async render() {
 
 		const container = this.container;
+		let response = this.response;
+
+		if(this.searchBar) {
+
+			response = this.searchBar.filterData;
+		}
 
 		const rows = container.querySelectorAll('.translation-row')
 
@@ -650,7 +702,7 @@ Settings.list.set('phrasesTranslations', class PhrasesTranslations extends Setti
 			}
 		}
 
-		for (const row of this.response) {
+		for (const row of response) {
 
 			const div = new TranslationRow(row, this);
 			container.insertAdjacentElement('beforeend', div.container);
