@@ -2,7 +2,11 @@ const API = require("../utils/api");
 
 class Translations extends API {
 
-	async insert({owner, owner_id, phrase = "", translation, locale_id}) {
+	async insert({owner="phrase", owner_id = 0, phrase = "", translation, locale_id}) {
+
+		this.assert(locale_id, 'Could not get locale.');
+
+		let response = '', message = '';
 
 		try {
 
@@ -10,7 +14,7 @@ class Translations extends API {
 
 			this.assert(locale, `The locale does not exist`);
 
-			return await this.mysql.query(
+			response = await this.mysql.query(
 				`INSERT INTO 
 					tb_object_translations
 					(
@@ -23,9 +27,11 @@ class Translations extends API {
 						account_id
 					)
 				VALUES(?, ?, ?, ?, ?, ?, ?)`,
-				[owner, owner_id, phrase, translation, locale_id, this.user.user_id, this.account.acocunt_id],
+				[owner, owner_id, phrase, translation, locale_id, this.user.user_id, this.account.account_id],
 				"write"
 			);
+
+			message = `${phrase} with translation ${translation}`;
 		}
 		catch (e) {
 
@@ -42,11 +48,17 @@ class Translations extends API {
 						AND locale_id = ?
 						AND account_id = ?
 				`,
-				[owner, owner_id, phrase, locale_id, this.account, account_id]
+				[owner, owner_id, phrase, locale_id, this.account.account_id, this.account.account_id]
 			);
 
-			return `Translation with ${existingData.phrase} to ${existingData.translation} already exists, please delete it first`;
+			message = `Translation with ${existingData.phrase} to ${existingData.translation} already exists, please delete it first.`;
+			this.warning = true;
 		}
+
+		return {
+			response, message,
+			warning: !!this.warning
+		};
 	}
 
 	async update({id}) {
@@ -61,7 +73,7 @@ class Translations extends API {
 			ON
 				l.id = o.locale_id 
 			WHERE
-				id = ?`,
+				o.id = ?`,
 			[id]
 		);
 
@@ -78,17 +90,18 @@ class Translations extends API {
 		const updateData = {};
 
 		fields.forEach(x => updateData[x] = this.request.body.hasOwnProperty(x) ? this.request.body[x] : existingData[x]);
+		let message = '';
 
-		try {
-			await this.mysql.query(`
-				UPDATE tb_object_transformations
-				SET ? WHERE id = ?
-				`,
-				[updateData, id],
-				"write"
-			);
-		}
-		catch (e) {
+		const result = await this.mysql.query(`
+			UPDATE tb_object_translations
+			SET ? WHERE id = ?
+			`,
+			[updateData, id],
+			"write"
+		);
+
+
+		if (result.message == "(Rows matched: 1  Changed: 0  Warnings: 0") {
 
 			[existingData] = await this.mysql.query(`
 					SELECT
@@ -102,20 +115,58 @@ class Translations extends API {
 						AND phrase = ?
 						AND locale_id = ?
 						AND account_id = ?
-				`[updateData.owner, updateData.owner_id, updateData.phrase, updateData.locale_id, this.account.account_id]
+				`,
+				[updateData.owner, updateData.owner_id, updateData.phrase, updateData.locale_id, this.account.account_id]
 			);
 
-			return `Translation with ${existingData.phrase} to ${existingData.translation} already exists, please delete it first`;
+			this.warning = true;
+			message = `Translation with ${existingData.phrase} to ${existingData.translation} already exists, please delete it first.`;
+		}
+
+		else {
+
+			message = `Updated ${updateData.phrase} to ${updateData.translation}`;
+		}
+
+		return {
+			message,
+			result,
+			warning: this.warning,
 		}
 	}
 
 	async delete({id}) {
 
-		return await this.mysql.query(
+		const [translation] = await this.mysql.query(`
+			SELECT 
+				t.*,
+				l.locale,
+				l.name
+			FROM 
+				tb_object_translations t 
+			JOIN
+				tb_locales l 
+			ON
+				l.id = t.locale_id
+			WHERE
+				t.id = ?
+				AND account_id = ?
+			`,
+			[id, this.account.account_id]
+		);
+
+		this.assert(translation, "Invalid Id for deletion");
+
+		const response = await this.mysql.query(
 			`DELETE FROM tb_object_translations WHERE id = ? AND account_id = ?`,
 			[id, this.account.account_id],
 			"write"
-		)
+		);
+
+		return {
+			response,
+			message: `Deleted Translation for ${translation.phrase} in ${translation.name}(${translation.locale})`
+		};
 	}
 
 	async list({owner = 0, owner_id = 0, phrase = "", locale_id = 0}) {
@@ -137,7 +188,8 @@ class Translations extends API {
 				AND (locale_id = ? OR 0 = ?)
 				AND account_id = ?
 			`,
-			[owner, owner, owner_id, owner_id, phrase, phrase, locale_id, locale_id, account_id]);
+			[owner, owner, owner_id, owner_id, phrase, phrase, locale_id, locale_id, this.account.account_id]
+		);
 	}
 }
 

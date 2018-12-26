@@ -158,3 +158,28 @@ main .cached-reports table {
 	.dialog-box-blanket .body.executing-query-info .code-editor {
 		height: 400px;
 	}
+
+#phrases-translations .translation-grid{
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-gap: 2px;
+    text-align: center;
+}
+#phrases-translations .translation-list-header{
+    background: var(--color-surface);
+	padding: calc(var(--gap) * 2);
+}
+#phrases-translations .translation-row{
+    padding: 10px 10px;
+}
+#phrases-translations .translation-row i {
+	margin-right: 0;
+}
+	#phrases-translations .translation-row .action.green:not(.NA):hover{
+		background: transparent;
+		color: #5b5;
+	}
+	#phrases-translations .translation-row .action.red:not(.NA):hover {
+		background: transparent;
+		color: #e77;
+	}

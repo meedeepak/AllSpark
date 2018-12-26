@@ -488,6 +488,338 @@ Settings.list.set('executingReports', class ExecutingReports extends SettingPage
 	}
 });
 
+Settings.list.set('phrasesTranslations', class PhrasesTranslations extends SettingPage {
+
+	get name() {
+
+		return `Phrases Translations`;
+	}
+
+	setup() {
+
+		if (this.page.querySelector('.phrases-translations')) {
+
+			this.page.querySelector('.phrases-translations').remove();
+		}
+
+		this.page.appendChild(this.container);
+	}
+
+	get container() {
+
+		if (this.containerElement) {
+
+			return this.containerElement;
+		}
+
+		const container = document.createElement('section');
+
+		container.innerHTML = `
+		<h1>Phrases Translations</h1>
+		<div class="toolbar">
+			<label class="save">
+				<button type="submit" id="add-translation" form="add-translation-form"><i class="far fa-save"></i> Add</button>
+			</label>
+		</div>
+		<form class="form" id="add-translation-form">
+			<label>
+				<span> Phrase</span>
+				<input type="text" name="phrase" class="translationInput" required>
+			</label>
+			<label>
+				<span> Locale</span>
+				<select name="locale_id"></select>
+			</label>
+			<label>
+				<span> Translation</span>
+				<input type="text" name="translation" class="translationInput" required>
+			</label>
+		</form>
+		
+		<h3>Existing Translations</h3>
+		
+		<div class="translation-grid" id="translations-headers"></div>
+		`;
+
+		const translationList = container.querySelector('#translations-headers');
+
+		translationList.innerHTML = null;
+
+		for(const header of ['Id', 'From', 'Locale', 'To', 'Save', 'Delete']) {
+
+			const div = document.createElement('div');
+			div.textContent = header;
+			div.classList.add('translation-list-header');
+			translationList.appendChild(div);
+		}
+
+		container.classList.add('section', 'show');
+		container.id = 'phrases-translations';
+
+		const select = container.querySelector('select');
+
+		for (const locale of MetaData.locales.values()) {
+
+			const option = document.createElement('option');
+			option.value = locale.id;
+			option.text = `${locale.name} (${locale.locale})`;
+
+			select.appendChild(option);
+		}
+
+		this.form = container.querySelector('#add-translation-form');
+
+		this.form.addEventListener('submit', async e => {
+
+			e.preventDefault();
+			await this.insert();
+		});
+
+		this.containerElement = container;
+
+		return this.containerElement;
+	}
+
+	async insert() {
+
+		const options = {
+			method: 'POST',
+			form: new FormData(this.form),
+		};
+
+		try {
+
+			const response = await API.call('translations/insert', {}, options);
+
+			await this.load();
+			this.form.reset();
+
+			if (response.warning) {
+
+				new SnackBar({
+					message: 'Nothing happened',
+					subtitle: response.message,
+					type: 'warning',
+				});
+			}
+
+			else {
+
+				new SnackBar({
+					message: 'Updated',
+					subtitle: response.message,
+					icon: 'fa fa-plus',
+				});
+			}
+
+		} catch (e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async load() {
+
+		await this.fetch();
+		await this.render();
+	}
+
+	async fetch() {
+
+		this.response = await API.call('translations/list?owner=phrases');
+		this.response = this.response.sort((x, y) => x.id - y.id);
+	}
+
+	async render() {
+
+		const container = this.container;
+
+		const rows = container.querySelectorAll('.translation-row')
+
+		for(const element of rows) {
+
+			if(!element.id) {
+
+				element.parentNode.removeChild(element);
+			}
+		}
+
+		for (const row of this.response) {
+
+			const div = new TranslationRow(row, this);
+			container.insertAdjacentElement('beforeend', div.container);
+		}
+	}
+});
+
+class TranslationRow {
+
+	constructor(data, page) {
+
+		Object.assign(this, data);
+		this.page = page;
+	}
+
+	get container() {
+
+		const container = document.createElement('form');
+
+		container.innerHTML = `
+		<div class="translation-grid">
+			<label>
+				<span>${this.id}</span>
+			</label>
+			<label>
+				<input type="text" value="${this.phrase}" name="phrase">
+			</label>
+			<label class="locales"></label>
+			</<label>
+				<input type="text" value="${this.translation}" name="translation">
+			</label>
+			<label>
+				<span>
+					<button type="submit"  class="action green">
+						<i class="far fa-save"></i>
+					</button>
+				</span>
+			</label>
+			<label>
+				<span title="Delete" class="action red"><i class="far fa-trash-alt"></i></span>
+			</label>
+		</div>
+		`;
+
+		this.form = container;
+
+		container.querySelector('.locales').appendChild(this.select);
+		container.classList.add('translation-row');
+
+		this.form.on('submit', async e => {
+
+			e.preventDefault();
+
+			await this.update();
+
+			await this.page.load();
+		});
+
+		const del = this.form.querySelector('.red');
+
+		del.removeEventListener('click', TranslationRow.deleteEventListener);
+
+		del.addEventListener('click', TranslationRow.deleteEventListener = async e => {
+
+			e.preventDefault();
+
+			await this.delete({
+				id: this.id,
+			});
+
+			this.page.load();
+		});
+
+		return container
+	}
+
+	async update() {
+
+		const data = {
+			method: 'POST',
+			form: new FormData(this.form),
+			id: this.id,
+		};
+
+		try {
+
+			const response = await API.call('translations/update', {id: this.id}, data,);
+
+			await this.page.load();
+
+			if (response.warning) {
+
+				new SnackBar({
+					message: 'Nothing happened',
+					subtitle: response.message,
+					type: 'warning',
+				});
+			}
+
+			else {
+
+				new SnackBar({
+					message: 'Updated',
+					subtitle: response.message,
+					icon: 'fa fa-plus',
+				});
+			}
+
+		} catch (e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async delete(data) {
+
+		try {
+
+			const response = await API.call('translations/delete', data, {method: 'POST'});
+
+			await this.page.load();
+
+			new SnackBar({
+				message: 'Deleted',
+				subtitle: response.message,
+				icon: 'fa fa-plus',
+			});
+
+		} catch (e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	get select() {
+
+		const selectList = document.createElement("select");
+		selectList.name = 'locale';
+
+		for (const locale of MetaData.locales.values()) {
+
+			const option = document.createElement("option");
+			option.value = locale.id;
+			option.text = `${locale.name} (${locale.locale})`;
+
+			if (this.locale_id == locale.id) {
+
+				option.selected = 'selected';
+			}
+
+			selectList.appendChild(option);
+		}
+
+		return selectList;
+	}
+}
+
 Settings.list.set('cachedReports', class CachedReports extends SettingPage {
 
 	constructor(...params) {

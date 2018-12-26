@@ -1307,6 +1307,7 @@ class MetaData {
 		MetaData.visualizations = new Map(metadata.visualizations ? metadata.visualizations.map(v => [v.slug, v]) : []);
 		MetaData.features = new Map(metadata.features ? metadata.features.map(f => [f.feature_id, f]) : []);
 		MetaData.globalFilters = new Map(metadata.globalFilters ? metadata.globalFilters.map(d => [d.id, d]) : []);
+		MetaData.locales = new Map(metadata.locales ? metadata.locales.map(d => [d.id, d]) : []);
 		user.settings = new Map(metadata.userSettings ? metadata.userSettings.map(us => [us.key, us.value]) : []);
 	}
 }
