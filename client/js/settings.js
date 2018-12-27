@@ -1824,7 +1824,7 @@ class PrivilegeComponents extends Set {
 			}
 		}
 
-		this.multiSelect = new MultiSelect({datalist: list, multiple: false, expand: false});
+		this.multiSelect = new MultiSelect({datalist: list, multiple: false, mode: 'collapse'});
 
 		container.querySelector('label.add-new').appendChild(this.multiSelect.container);
 
