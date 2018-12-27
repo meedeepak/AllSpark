@@ -164,6 +164,7 @@ main .cached-reports table {
     grid-template-columns: repeat(6, 1fr);
     grid-gap: 2px;
     text-align: center;
+	align-items: center;
 }
 #phrases-translations .translation-list-header{
     background: var(--color-surface);

@@ -825,7 +825,12 @@ router.get('/reports/:stage?/:id?', API.serve(class extends HTMLAPI {
 						<div class="form">
 							<label>
 								<span>Name <span class="red">*</span></span>
-								<input type="text" name="name" required>
+								<div>
+									<input type="text" name="name" required>
+									<button type="button" class="add-translation-button" title="Add Translations">
+										<i class="fa fa-language"></i>
+									</button>
+								</div>
 							</label>
 
 							<label>

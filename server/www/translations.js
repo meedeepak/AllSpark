@@ -169,9 +169,9 @@ class Translations extends API {
 		};
 	}
 
-	async list({owner = 0, owner_id = 0, phrase = "", locale_id = 0}) {
+	async list({owner = '0', owner_id = '0', phrase = "", locale_id = '0'}) {
 
-		return await this.mysql.query(`
+		const response = await this.mysql.query(`
 			SELECT
 				o.*, 
 				l.name
@@ -182,14 +182,16 @@ class Translations extends API {
 			ON
 				l.id = o.locale_id
 			WHERE
-				(owner = ? OR 0 = ?)
-				AND (owner_id = ? OR 0 = ?)
+				(owner = ? OR '0' = ?)
+				AND (owner_id = ? OR '0' = ?)
 				AND (phrase = ? OR "" = ?)
-				AND (locale_id = ? OR 0 = ?)
+				AND (locale_id = ? OR '0' = ?)
 				AND account_id = ?
 			`,
 			[owner, owner, owner_id, owner_id, phrase, phrase, locale_id, locale_id, this.account.account_id]
 		);
+
+		return response;
 	}
 }
 

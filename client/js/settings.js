@@ -612,7 +612,6 @@ Settings.list.set('phrasesTranslations', class PhrasesTranslations extends Setti
 		];
 
 		this.searchBarFilter = new SearchColumnFilters({
-			data: this.response,
 			filters: filters,
 			advanceSearch: true,
 			page,
@@ -678,21 +677,23 @@ Settings.list.set('phrasesTranslations', class PhrasesTranslations extends Setti
 
 	async fetch() {
 
-		this.response = await API.call('translations/list?owner=phrases');
+		this.response = await API.call('translations/list',{owner: 'phrase'} ,{});
 		this.response = this.response.sort((x, y) => x.id - y.id);
 	}
 
 	async render() {
 
 		const container = this.container;
-		let response = this.response;
+
+		let response = JSON.parse(JSON.stringify(this.response));
 
 		if(this.searchBar) {
 
+			this.searchBarFilter.data = this.response;
 			response = this.searchBar.filterData;
 		}
 
-		const rows = container.querySelectorAll('.translation-row')
+		const rows = container.querySelectorAll('.translation-row');
 
 		for(const element of rows) {
 

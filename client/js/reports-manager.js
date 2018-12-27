@@ -767,6 +767,24 @@ ReportsManger.stages.set('configure-report', class ConfigureReport extends Repor
 			`);
 		}
 
+		const titleTranslations = new AddTranslations({
+			phrase: 'name',
+			owner: 'query',
+			owner_id: this.selectedReport.query_id
+		});
+
+		await titleTranslations.load();
+
+		const dialougeBox = new DialogBox();
+		dialougeBox.heading = `Add Translations for ${this.selectedReport.name}#${this.selectedReport.query_id}`;
+
+		dialougeBox.body.appendChild(titleTranslations.container);
+
+		this.form.querySelector('.add-translation-button').addEventListener('click', e => {
+
+			dialougeBox.show();
+		})
+
 		this.report = this.selectedReport;
 
 		this.report ? this.edit() : this.add();

@@ -3877,6 +3877,271 @@ class FormatSQL {
 	}
 }
 
+class AddTranslations {
+
+	constructor({owner, owner_id, phrase}) {
+
+		this.owner = owner;
+		this.owner_id = owner_id;
+		this.phrase = phrase;
+	}
+
+	async fetch() {
+
+		const params = {
+			owner: this.owner,
+			owner_id: this.owner_id,
+			phrase: this.phrase
+		};
+
+		this.response = await API.call('translations/list', params);
+	}
+
+	get container() {
+
+		if(this.getContainer) {
+
+			return this.getContainer;
+		}
+
+		const container = document.createElement('div');
+		container.classList.add('add-translations-container')
+
+		container.innerHTML = `
+			<div class="translation-list"></div>
+		`;
+
+		this.getContainer = container;
+
+		return container;
+	}
+
+	async insert(data) {
+
+		const params = {
+			phrase: this.phrase,
+			owner: this.owner,
+			owner_id: this.owner_id,
+		}
+		try {
+
+			const response = await API.call('translations/insert', params, data);
+
+			await this.load();
+
+			if (response.warning) {
+
+				new SnackBar({
+					message: 'Nothing happened',
+					subtitle: response.message,
+					type: 'warning',
+				});
+			}
+
+			else {
+
+				new SnackBar({
+					message: 'Updated',
+					subtitle: response.message,
+					icon: 'fa fa-plus',
+				});
+			}
+		}
+		catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async update(data, id) {
+
+		try {
+
+			const response = await API.call('translations/update', {id: id}, data);
+
+			await this.load();
+
+			if (response.warning) {
+
+				new SnackBar({
+					message: 'Nothing happened',
+					subtitle: response.message,
+					type: 'warning',
+				});
+			}
+
+			else {
+
+				new SnackBar({
+					message: 'Updated',
+					subtitle: response.message,
+					icon: 'fa fa-plus',
+				});
+			}
+
+		} catch (e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async delete(data) {
+
+		try {
+
+			const response = await API.call('translations/delete', data, {method: 'POST'});
+
+			await this.load();
+
+			new SnackBar({
+				message: 'Deleted',
+				subtitle: response.message,
+				icon: 'fa fa-plus',
+			});
+
+		}
+
+		catch (e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async load() {
+
+		await this.fetch();
+		await this.render();
+	}
+
+	async render() {
+
+		const container = this.container.querySelector('.translation-list');
+		container.textContent = null;
+
+		for (const row of this.response) {
+
+			const rowContainer = this.row(row);
+			container.appendChild(rowContainer);
+		}
+
+		const rowContainer = this.row();
+		container.appendChild(rowContainer);
+	}
+
+	row(data) {
+
+		const container = document.createElement('form');
+
+		container.innerHTML = `
+			<label name="locale_id"></label>
+			<label>
+				<input type="text" name="translation">
+			</label>
+			<label>
+				<span>
+					<button type="submit" class="action green"><i></i></button>
+				</span>
+			</label>
+			<label>
+				<span>
+					<button type="button" class="action red hidden"><i class="far fa-trash-alt"></i></button>
+				</span>
+			</label>
+		`;
+
+		container.addEventListener('submit', async e => {
+
+			e.preventDefault();
+
+			if(!data) {
+
+				await this.insert({
+					method: 'POST',
+					form: new FormData(container),
+				});
+			}
+
+			else {
+
+				await this.update(
+					{
+						method: 'POST',
+						form: new FormData(container),
+					},
+					data.id
+				);
+			}
+		});
+
+		if (!data) {
+
+			container.querySelector('.green i').classList.add('fa', 'fa-paper-plane');
+			container.querySelector('label[name=locale_id]').appendChild(this.select());
+
+			return container;
+		}
+
+		container.querySelector('.green i').classList.add('far', 'fa-save');
+
+		const del = container.querySelector('.red');
+		del.classList.remove('hidden');
+
+		container.querySelector('label[name=locale_id]').appendChild(this.select(data.locale_id));
+		container.querySelector('input[name=translation]').value = data.translation;
+
+		del.addEventListener('click', async e => {
+
+			e.preventDefault();
+
+			return await this.delete({
+				id: data.id
+			});
+		});
+
+		return container;
+	}
+
+	select(selected) {
+
+		const selectContainer = document.createElement('select');
+		selectContainer.name = 'locale_id';
+
+		for (const locale of MetaData.locales.values()) {
+
+			const option = document.createElement('option');
+			option.value = locale.id;
+			option.text = `${locale.name} (${locale.locale})`;
+
+			selectContainer.appendChild(option);
+
+			if (locale.id == selected) {
+
+				option.selected = 'selected';
+			}
+		}
+
+		return selectContainer;
+	}
+}
+
 if(typeof Node != 'undefined') {
 	Node.prototype.on = window.on = function(name, fn) {
 		this.addEventListener(name, fn);

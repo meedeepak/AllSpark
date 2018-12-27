@@ -398,6 +398,8 @@ exports.list = class extends API {
 
 		const queryTranslationMapping = {};
 
+		//phrase should be like title, description etc, which will be replaced with user's locale.
+
 		for(const row of results[7]) {
 
 			if(!queryTranslationMapping.hasOwnProperty(row.owner_id)) {
