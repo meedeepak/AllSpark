@@ -3877,9 +3877,20 @@ class FormatSQL {
 	}
 }
 
+/*
+expanded = {
+async () => {
+		cosnt a = new HTMLEditor();
+		await a.setup();
+		return a;
+	}
+}
+
+* */
+
 class AddTranslations {
 
-	constructor({owner, owner_id, phrase}) {
+	constructor({owner, owner_id, phrase, expanded}) {
 
 		this.owner = owner;
 		this.owner_id = owner_id;
@@ -3916,18 +3927,207 @@ class AddTranslations {
 		return container;
 	}
 
-	async insert(data) {
+	async load() {
+
+		await this.fetch();
+		await this.render();
+	}
+
+	async render() {
+
+		const container = this.container.querySelector('.translation-list');
+		container.textContent = null;
+
+		for (const row of this.response) {
+
+			const rowContainer = new TranslationRow(row, this,)
+			container.appendChild(rowContainer.container);
+		}
+
+		const rowContainer = new TranslationRow({}, this,);
+		container.appendChild(rowContainer.container);
+	}
+
+	async expanded(data) {
+
+		if(!this.expanded) {
+
+			return;
+		}
+
+		const editor = await this.expanded.editor();
+		editor.value = data.translation;
+
+		return editor.container;
+	}
+}
+
+class TranslationRow {
+
+	constructor(data={}, addTranslation, expandedConfig) {
+
+		if(!Object.values(data).length) {
+
+			this.empty = true;
+		}
+
+		else {
+
+			Object.assign(this, data);
+		}
+
+		this.ctx = addTranslation;
+		this.expandedConfig = expandedConfig;
+	}
+
+	get container() {
+
+		if(this.getContainer) {
+
+			return this.getContainer;
+		}
+
+		const container = document.createElement('form');
+
+		container.innerHTML = `
+			<label name="locale_id"></label>
+			<label name="translation"><input type="text" name="translation"></label>
+			<label>
+				<span>
+					<button type="submit" class="action green"><i></i></button>
+				</span>
+			</label>
+			<label>
+				<span>
+					<button type="button" class="action red hidden"><i class="far fa-trash-alt"></i></button>
+				</span>
+			</label>
+		`;
+
+		container.addEventListener('submit', async e => {
+
+			e.preventDefault();
+			this.empty ? await this.insert(container) : await this.update();
+		});
+
+		if (this.empty) {
+
+			container.querySelector('.green i').classList.add('fa', 'fa-paper-plane');
+			container.querySelector('label[name=locale_id]').appendChild(this.select());
+
+			return container;
+		}
+
+		container.querySelector('.green i').classList.add('far', 'fa-save');
+
+		const del = container.querySelector('.red');
+		del.classList.remove('hidden');
+
+		container.querySelector('label[name=locale_id]').appendChild(this.select(this.locale_id));
+		container.querySelector('input[name=translation]').value = this.translation;
+
+		del.addEventListener('click', async e => {
+
+			e.preventDefault();
+
+			return await this.delete();
+		});
+
+		this.getContainer = container;
+
+		return this.getContainer;
+	}
+
+	async delete() {
+
+		try {
+
+			const response = await API.call('translations/delete', {id: this.id}, {method: 'POST'});
+
+			await this.ctx.load();
+
+			new SnackBar({
+				message: 'Deleted',
+				subtitle: response.message,
+				icon: 'fa fa-plus',
+			});
+
+		}
+
+		catch (e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async update() {
+
+		const data = {
+			method: 'POST',
+			form: new FormData(this.container),
+		}
+
+		try {
+
+			const response = await API.call('translations/update', {id: this.id}, data);
+
+			await this.ctx.load();
+
+			if (response.warning) {
+
+				new SnackBar({
+					message: 'Nothing happened',
+					subtitle: response.message,
+					type: 'warning',
+				});
+			}
+
+			else {
+
+				new SnackBar({
+					message: 'Updated',
+					subtitle: response.message,
+					icon: 'fa fa-plus',
+				});
+			}
+
+		}
+		catch (e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async insert(container) {
+		debugger
 
 		const params = {
-			phrase: this.phrase,
-			owner: this.owner,
-			owner_id: this.owner_id,
-		}
+			phrase: this.ctx.phrase,
+			owner: this.ctx.owner,
+			owner_id: this.ctx.owner_id,
+		},
+			data = {
+				method: 'POST',
+				form: new FormData(container),
+			};
+
 		try {
 
 			const response = await API.call('translations/insert', params, data);
 
-			await this.load();
+			await this.ctx.load();
 
 			if (response.warning) {
 
@@ -3957,166 +4157,6 @@ class AddTranslations {
 
 			throw e;
 		}
-	}
-
-	async update(data, id) {
-
-		try {
-
-			const response = await API.call('translations/update', {id: id}, data);
-
-			await this.load();
-
-			if (response.warning) {
-
-				new SnackBar({
-					message: 'Nothing happened',
-					subtitle: response.message,
-					type: 'warning',
-				});
-			}
-
-			else {
-
-				new SnackBar({
-					message: 'Updated',
-					subtitle: response.message,
-					icon: 'fa fa-plus',
-				});
-			}
-
-		} catch (e) {
-
-			new SnackBar({
-				message: 'Request Failed',
-				subtitle: e.message,
-				type: 'error',
-			});
-
-			throw e;
-		}
-	}
-
-	async delete(data) {
-
-		try {
-
-			const response = await API.call('translations/delete', data, {method: 'POST'});
-
-			await this.load();
-
-			new SnackBar({
-				message: 'Deleted',
-				subtitle: response.message,
-				icon: 'fa fa-plus',
-			});
-
-		}
-
-		catch (e) {
-
-			new SnackBar({
-				message: 'Request Failed',
-				subtitle: e.message,
-				type: 'error',
-			});
-
-			throw e;
-		}
-	}
-
-	async load() {
-
-		await this.fetch();
-		await this.render();
-	}
-
-	async render() {
-
-		const container = this.container.querySelector('.translation-list');
-		container.textContent = null;
-
-		for (const row of this.response) {
-
-			const rowContainer = this.row(row);
-			container.appendChild(rowContainer);
-		}
-
-		const rowContainer = this.row();
-		container.appendChild(rowContainer);
-	}
-
-	row(data) {
-
-		const container = document.createElement('form');
-
-		container.innerHTML = `
-			<label name="locale_id"></label>
-			<label>
-				<input type="text" name="translation">
-			</label>
-			<label>
-				<span>
-					<button type="submit" class="action green"><i></i></button>
-				</span>
-			</label>
-			<label>
-				<span>
-					<button type="button" class="action red hidden"><i class="far fa-trash-alt"></i></button>
-				</span>
-			</label>
-		`;
-
-		container.addEventListener('submit', async e => {
-
-			e.preventDefault();
-
-			if(!data) {
-
-				await this.insert({
-					method: 'POST',
-					form: new FormData(container),
-				});
-			}
-
-			else {
-
-				await this.update(
-					{
-						method: 'POST',
-						form: new FormData(container),
-					},
-					data.id
-				);
-			}
-		});
-
-		if (!data) {
-
-			container.querySelector('.green i').classList.add('fa', 'fa-paper-plane');
-			container.querySelector('label[name=locale_id]').appendChild(this.select());
-
-			return container;
-		}
-
-		container.querySelector('.green i').classList.add('far', 'fa-save');
-
-		const del = container.querySelector('.red');
-		del.classList.remove('hidden');
-
-		container.querySelector('label[name=locale_id]').appendChild(this.select(data.locale_id));
-		container.querySelector('input[name=translation]').value = data.translation;
-
-		del.addEventListener('click', async e => {
-
-			e.preventDefault();
-
-			return await this.delete({
-				id: data.id
-			});
-		});
-
-		return container;
 	}
 
 	select(selected) {

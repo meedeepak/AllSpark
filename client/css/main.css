@@ -1421,6 +1421,6 @@ body#tinymce table tr {
 	background: transparent;
 	color: #e77;
 }
-.add-translations-container form{
+.add-translations-container form {
 	padding: var(--gap) var(--gap) var(--gap) 0;
 }
