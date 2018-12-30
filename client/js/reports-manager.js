@@ -767,10 +767,19 @@ ReportsManger.stages.set('configure-report', class ConfigureReport extends Repor
 			`);
 		}
 
+		const fn = async (node) => {
+			const a = new HTMLEditor();
+			node.appendChild(a.container)
+			await a.setup();
+		}
+
 		const titleTranslations = new AddTranslations({
 			phrase: 'name',
 			owner: 'query',
-			owner_id: this.selectedReport.query_id
+			owner_id: this.selectedReport.query_id,
+			expanded: {
+				editor: fn,
+			},
 		});
 
 		await titleTranslations.load();

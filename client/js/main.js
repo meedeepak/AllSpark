@@ -3895,6 +3895,10 @@ class AddTranslations {
 		this.owner = owner;
 		this.owner_id = owner_id;
 		this.phrase = phrase;
+		this.expanded = expanded;
+
+		this.list = new Map;
+		this.localeTranslationMap = new Map;
 	}
 
 	async fetch() {
@@ -3906,6 +3910,15 @@ class AddTranslations {
 		};
 
 		this.response = await API.call('translations/list', params);
+
+		this.list.clear();
+		this.localeTranslationMap = new Map;
+
+		for(const row of this.response) {
+
+			this.list.set(row.id, new TranslationRow(row, this));
+			this.localeTranslationMap.set(row.locale_id, row.id);
+		}
 	}
 
 	get container() {
@@ -3938,33 +3951,87 @@ class AddTranslations {
 		const container = this.container.querySelector('.translation-list');
 		container.textContent = null;
 
-		for (const row of this.response) {
+		if(!this.expanded) {
 
-			const rowContainer = new TranslationRow(row, this,)
+			for (const translationRow of this.list.values()) {
+
+				container.appendChild(translationRow.container);
+			}
+
+			const rowContainer = new TranslationRow({}, this);
 			container.appendChild(rowContainer.container);
 		}
 
-		const rowContainer = new TranslationRow({}, this,);
-		container.appendChild(rowContainer.container);
+		else {
+
+			container.insertAdjacentHTML('beforeend', `
+				<form>
+					<label name="locale_id"></label>
+					<label>
+						<button type="submit"> Save</button>
+					</label>
+					<div class="text-editor"></div>
+				</form>
+			`);
+
+			container.querySelector('label[name=locale_id]').appendChild(this.select());
+
+			const selectContainer = container.querySelector('select[name=locale_id]');
+
+			const that = this;
+
+			selectContainer.addEventListener('change', async e => {
+
+				const textEditorContainer = container.querySelector('.text-editor');
+
+				textEditorContainer.textContent = null;
+
+				if(that.list.has(parseInt(that.localeTranslationMap.get(selectContainer.value)))) {
+
+					await that.list.get(parseInt(that.localeTranslationMap.get(selectContainer.value))).expanded(textEditorContainer);
+				}
+
+				else {
+
+					const obj = new TranslationRow({}, that);
+					await obj.expanded(textEditorContainer);
+				}
+			});
+
+			container.querySelector('form').addEventListener('submit', e => {
+				e.preventDefault();
+				const a = new FormData(container.querySelector('form'))
+				console.log([...a.keys()], [...a.values()]);
+			});
+		}
 	}
 
-	async expanded(data) {
+	select(selected) {
 
-		if(!this.expanded) {
+		const selectContainer = document.createElement('select');
+		selectContainer.name = 'locale_id';
 
-			return;
+		for (const locale of MetaData.locales.values()) {
+
+			const option = document.createElement('option');
+			option.value = locale.id;
+			option.text = `${locale.name} (${locale.locale})`;
+
+			selectContainer.appendChild(option);
+
+			if (locale.id == selected) {
+
+				option.selected = 'selected';
+			}
 		}
 
-		const editor = await this.expanded.editor();
-		editor.value = data.translation;
-
-		return editor.container;
+		return selectContainer;
 	}
 }
 
 class TranslationRow {
 
-	constructor(data={}, addTranslation, expandedConfig) {
+	constructor(data={}, addTranslation) {
 
 		if(!Object.values(data).length) {
 
@@ -3977,7 +4044,7 @@ class TranslationRow {
 		}
 
 		this.ctx = addTranslation;
-		this.expandedConfig = expandedConfig;
+		this.expandedConfig = this.ctx.expanded;
 	}
 
 	get container() {
@@ -4013,7 +4080,7 @@ class TranslationRow {
 		if (this.empty) {
 
 			container.querySelector('.green i').classList.add('fa', 'fa-paper-plane');
-			container.querySelector('label[name=locale_id]').appendChild(this.select());
+			container.querySelector('label[name=locale_id]').appendChild(this.ctx.select());
 
 			return container;
 		}
@@ -4023,7 +4090,7 @@ class TranslationRow {
 		const del = container.querySelector('.red');
 		del.classList.remove('hidden');
 
-		container.querySelector('label[name=locale_id]').appendChild(this.select(this.locale_id));
+		container.querySelector('label[name=locale_id]').appendChild(this.ctx.select(this.locale_id));
 		container.querySelector('input[name=translation]').value = this.translation;
 
 		del.addEventListener('click', async e => {
@@ -4036,6 +4103,24 @@ class TranslationRow {
 		this.getContainer = container;
 
 		return this.getContainer;
+	}
+
+	get expandedContainer() {
+
+		const container = document.createElement('div');
+
+		container.innerHTML = `
+			<form>
+				<label name="locale_id"></label>
+				<div class="hidden">
+					<div class="editor"></div>
+					<input type="submit">
+				</div>
+			</form>
+		`;
+
+
+		container.querySelector('label[name=locale_id]').appendChild(this.ctx.select(this.locale_id));
 	}
 
 	async delete() {
@@ -4111,7 +4196,6 @@ class TranslationRow {
 	}
 
 	async insert(container) {
-		debugger
 
 		const params = {
 			phrase: this.ctx.phrase,
@@ -4159,26 +4243,14 @@ class TranslationRow {
 		}
 	}
 
-	select(selected) {
+	async expanded(node) {
 
-		const selectContainer = document.createElement('select');
-		selectContainer.name = 'locale_id';
+		if(!this.expandedConfig) {
 
-		for (const locale of MetaData.locales.values()) {
-
-			const option = document.createElement('option');
-			option.value = locale.id;
-			option.text = `${locale.name} (${locale.locale})`;
-
-			selectContainer.appendChild(option);
-
-			if (locale.id == selected) {
-
-				option.selected = 'selected';
-			}
+			return;
 		}
 
-		return selectContainer;
+		const editor = await this.expandedConfig.editor(node);
 	}
 }
 
