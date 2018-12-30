@@ -3916,7 +3916,7 @@ class AddTranslations {
 
 		for(const row of this.response) {
 
-			this.list.set(row.id, new TranslationRow(row, this));
+			this.list.set(row.id, new ObjectTranslationRow(row, this));
 			this.localeTranslationMap.set(row.locale_id, row.id);
 		}
 	}
@@ -3953,12 +3953,12 @@ class AddTranslations {
 
 		if(!this.expanded) {
 
-			for (const translationRow of this.list.values()) {
+			for (const ObjectTranslationRow of this.list.values()) {
 
-				container.appendChild(translationRow.container);
+				container.appendChild(ObjectTranslationRow.container);
 			}
 
-			const rowContainer = new TranslationRow({}, this);
+			const rowContainer = new ObjectTranslationRow({}, this);
 			container.appendChild(rowContainer.container);
 		}
 
@@ -3993,7 +3993,7 @@ class AddTranslations {
 
 				else {
 
-					const obj = new TranslationRow({}, that);
+					const obj = new ObjectTranslationRow({}, that);
 					await obj.expanded(textEditorContainer);
 				}
 			});
@@ -4029,7 +4029,7 @@ class AddTranslations {
 	}
 }
 
-class TranslationRow {
+class ObjectTranslationRow {
 
 	constructor(data={}, addTranslation) {
 
