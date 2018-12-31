@@ -3925,16 +3925,16 @@ class AddTranslations {
 		const selectContainer = document.createElement('select');
 		selectContainer.name = 'locale_id';
 
-		if(!selected) {
-
-			const option = document.createElement('option');
-			option.value = 0;
-			option.text = 'Select Locales';
-
-			option.selected = 'selected';
-
-			selectContainer.appendChild(option);
-		}
+		// if(!selected) {
+		//
+		// 	const option = document.createElement('option');
+		// 	option.value = 0;
+		// 	option.text = 'Select Locales';
+		//
+		// 	option.selected = 'selected';
+		//
+		// 	selectContainer.appendChild(option);
+		// }
 
 		for (const locale of MetaData.locales.values()) {
 
@@ -4013,22 +4013,11 @@ class AddTranslations {
 
 			const that = this;
 
-			selectContainer.addEventListener('change', async e => {
+			const renderTextEditor = async () => {
 
 				const textEditorContainer = container.querySelector('.text-editor');
 
 				textEditorContainer.textContent = null;
-
-				if(!parseInt(selectContainer.value)) {
-
-					container.querySelector('button[type=submit]').classList.add('hidden');
-					return;
-				}
-
-				else {
-
-					container.querySelector('button[type=submit]').classList.remove('hidden');
-				}
 
 				if(that.list.has(parseInt(that.localeTranslationMap.get(selectContainer.value)))) {
 
@@ -4040,7 +4029,14 @@ class AddTranslations {
 					const obj = new ObjectTranslationRow({}, that);
 					await obj.expanded(textEditorContainer);
 				}
+			}
+
+			selectContainer.addEventListener('change', async e => {
+
+				renderTextEditor();
 			});
+
+			setTimeout(async () => renderTextEditor());
 
 			container.querySelector('form').addEventListener('submit', e => {
 				e.preventDefault();
