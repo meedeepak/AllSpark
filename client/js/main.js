@@ -3901,26 +3901,6 @@ class AddTranslations {
 		this.localeTranslationMap = new Map;
 	}
 
-	async fetch() {
-
-		const params = {
-			owner: this.owner,
-			owner_id: this.owner_id,
-			phrase: this.phrase
-		};
-
-		this.response = await API.call('translations/list', params);
-
-		this.list.clear();
-		this.localeTranslationMap = new Map;
-
-		for(const row of this.response) {
-
-			this.list.set(row.id, new ObjectTranslationRow(row, this));
-			this.localeTranslationMap.set(row.locale_id, row.id);
-		}
-	}
-
 	get container() {
 
 		if(this.getContainer) {
@@ -3940,10 +3920,63 @@ class AddTranslations {
 		return container;
 	}
 
+	select(selected) {
+
+		const selectContainer = document.createElement('select');
+		selectContainer.name = 'locale_id';
+
+		if(!selected) {
+
+			const option = document.createElement('option');
+			option.value = 0;
+			option.text = 'Select Locales';
+
+			option.selected = 'selected';
+
+			selectContainer.appendChild(option);
+		}
+
+		for (const locale of MetaData.locales.values()) {
+
+			const option = document.createElement('option');
+			option.value = locale.id;
+			option.text = `${locale.name} (${locale.locale})`;
+
+			selectContainer.appendChild(option);
+
+			if (locale.id == selected) {
+
+				option.selected = 'selected';
+			}
+		}
+
+		return selectContainer;
+	}
+
 	async load() {
 
 		await this.fetch();
 		await this.render();
+	}
+
+	async fetch() {
+
+		const params = {
+			owner: this.owner,
+			owner_id: this.owner_id,
+			phrase: this.phrase
+		};
+
+		this.response = await API.call('translations/list', params);
+
+		this.list.clear();
+		this.localeTranslationMap = new Map;
+
+		for(const row of this.response) {
+
+			this.list.set(row.id, new ObjectTranslationRow(row, this));
+			this.localeTranslationMap.set(row.locale_id, row.id);
+		}
 	}
 
 	async render() {
@@ -4015,39 +4048,6 @@ class AddTranslations {
 				console.log([...a.keys()], [...a.values()]);
 			});
 		}
-	}
-
-	select(selected) {
-
-		const selectContainer = document.createElement('select');
-		selectContainer.name = 'locale_id';
-
-		if(!selected) {
-
-			const option = document.createElement('option');
-			option.value = 0;
-			option.text = 'Select Locales';
-
-			option.selected = 'selected';
-
-			selectContainer.appendChild(option);
-		}
-
-		for (const locale of MetaData.locales.values()) {
-
-			const option = document.createElement('option');
-			option.value = locale.id;
-			option.text = `${locale.name} (${locale.locale})`;
-
-			selectContainer.appendChild(option);
-
-			if (locale.id == selected) {
-
-				option.selected = 'selected';
-			}
-		}
-
-		return selectContainer;
 	}
 }
 
