@@ -3968,7 +3968,7 @@ class AddTranslations {
 				<form>
 					<label name="locale_id"></label>
 					<label>
-						<button type="submit"> Save</button>
+						<button type="submit" class="hidden"> Save</button>
 					</label>
 					<div class="text-editor"></div>
 				</form>
@@ -3985,6 +3985,17 @@ class AddTranslations {
 				const textEditorContainer = container.querySelector('.text-editor');
 
 				textEditorContainer.textContent = null;
+
+				if(!parseInt(selectContainer.value)) {
+
+					container.querySelector('button[type=submit]').classList.add('hidden');
+					return;
+				}
+
+				else {
+
+					container.querySelector('button[type=submit]').classList.remove('hidden');
+				}
 
 				if(that.list.has(parseInt(that.localeTranslationMap.get(selectContainer.value)))) {
 
@@ -4010,6 +4021,17 @@ class AddTranslations {
 
 		const selectContainer = document.createElement('select');
 		selectContainer.name = 'locale_id';
+
+		if(!selected) {
+
+			const option = document.createElement('option');
+			option.value = 0;
+			option.text = 'Select Locales';
+
+			option.selected = 'selected';
+
+			selectContainer.appendChild(option);
+		}
 
 		for (const locale of MetaData.locales.values()) {
 
