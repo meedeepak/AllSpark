@@ -3925,17 +3925,6 @@ class AddTranslations {
 		const selectContainer = document.createElement('select');
 		selectContainer.name = 'locale_id';
 
-		// if(!selected) {
-		//
-		// 	const option = document.createElement('option');
-		// 	option.value = 0;
-		// 	option.text = 'Select Locales';
-		//
-		// 	option.selected = 'selected';
-		//
-		// 	selectContainer.appendChild(option);
-		// }
-
 		for (const locale of MetaData.locales.values()) {
 
 			const option = document.createElement('option');
@@ -4001,7 +3990,10 @@ class AddTranslations {
 				<form>
 					<label name="locale_id"></label>
 					<label>
-						<button type="submit" class="hidden"> Save</button>
+						<button type="submit"> Save</button>
+					</label>
+					<label>
+						<input type="button" value="Delete" class="hidden">
 					</label>
 					<div class="text-editor"></div>
 				</form>
@@ -4019,29 +4011,55 @@ class AddTranslations {
 
 				textEditorContainer.textContent = null;
 
-				if(that.list.has(parseInt(that.localeTranslationMap.get(selectContainer.value)))) {
+				if(that.list.has(that.localeTranslationMap.get(parseInt(selectContainer.value)))) {
 
-					await that.list.get(parseInt(that.localeTranslationMap.get(selectContainer.value))).expanded(textEditorContainer);
+					await that.list.get(that.localeTranslationMap.get(parseInt(selectContainer.value)))
+						.expanded(textEditorContainer);
 				}
 
 				else {
 
-					const obj = new ObjectTranslationRow({}, that);
-					await obj.expanded(textEditorContainer);
+					this.editor = new ObjectTranslationRow({}, that);
+					await this.editor.expanded(textEditorContainer);
 				}
 			}
 
 			selectContainer.addEventListener('change', async e => {
 
-				renderTextEditor();
+				await renderTextEditor();
 			});
 
-			setTimeout(async () => renderTextEditor());
+			setTimeout(async () => await renderTextEditor());
 
-			container.querySelector('form').addEventListener('submit', e => {
+			container.querySelector('form').addEventListener('submit', async e => {
 				e.preventDefault();
-				const a = new FormData(container.querySelector('form'))
-				console.log([...a.keys()], [...a.values()]);
+
+				const row = that.list.get(that.localeTranslationMap.get(parseInt(selectContainer.value)));
+
+				if (row) {
+
+					await row.update({ translation: row.editor.value});
+				}
+
+				else {
+
+					this.editor.insert(
+						{
+							phrase: this.phrase,
+							owner: this.owner,
+							owner_id: this.owner_id,
+							translation: this.editor.editor.value
+						},
+						{
+							form: new FormData(container.querySelector('form')),
+							method: 'POST',
+						}
+					);
+				}
+
+				const a = new FormData(container.querySelector('form'));
+
+				console.log([...a.keys()], [...a.values()],  '@@@@@@');
 			});
 		}
 	}
@@ -4062,7 +4080,7 @@ class ObjectTranslationRow {
 		}
 
 		this.ctx = addTranslation;
-		this.expandedConfig = this.ctx.expanded;
+		this.expand = this.ctx.expanded;
 	}
 
 	get container() {
@@ -4092,7 +4110,18 @@ class ObjectTranslationRow {
 		container.addEventListener('submit', async e => {
 
 			e.preventDefault();
-			this.empty ? await this.insert(container) : await this.update();
+			this.empty
+
+				? await this.ctx.insert({
+						phrase: this.ctx.phrase,
+						owner: this.ctx.owner,
+						owner_id: this.ctx.owner_id,
+					},
+					{
+						method: 'POST',
+						form: new FormData(container)
+					})
+				: await this.update();
 		});
 
 		if (this.empty) {
@@ -4137,93 +4166,10 @@ class ObjectTranslationRow {
 			</form>
 		`;
 
-
 		container.querySelector('label[name=locale_id]').appendChild(this.ctx.select(this.locale_id));
 	}
 
-	async delete() {
-
-		try {
-
-			const response = await API.call('translations/delete', {id: this.id}, {method: 'POST'});
-
-			await this.ctx.load();
-
-			new SnackBar({
-				message: 'Deleted',
-				subtitle: response.message,
-				icon: 'fa fa-plus',
-			});
-
-		}
-
-		catch (e) {
-
-			new SnackBar({
-				message: 'Request Failed',
-				subtitle: e.message,
-				type: 'error',
-			});
-
-			throw e;
-		}
-	}
-
-	async update() {
-
-		const data = {
-			method: 'POST',
-			form: new FormData(this.container),
-		}
-
-		try {
-
-			const response = await API.call('translations/update', {id: this.id}, data);
-
-			await this.ctx.load();
-
-			if (response.warning) {
-
-				new SnackBar({
-					message: 'Nothing happened',
-					subtitle: response.message,
-					type: 'warning',
-				});
-			}
-
-			else {
-
-				new SnackBar({
-					message: 'Updated',
-					subtitle: response.message,
-					icon: 'fa fa-plus',
-				});
-			}
-
-		}
-		catch (e) {
-
-			new SnackBar({
-				message: 'Request Failed',
-				subtitle: e.message,
-				type: 'error',
-			});
-
-			throw e;
-		}
-	}
-
-	async insert(container) {
-
-		const params = {
-			phrase: this.ctx.phrase,
-			owner: this.ctx.owner,
-			owner_id: this.ctx.owner_id,
-		},
-			data = {
-				method: 'POST',
-				form: new FormData(container),
-			};
+	async insert(params, data) {
 
 		try {
 
@@ -4261,14 +4207,99 @@ class ObjectTranslationRow {
 		}
 	}
 
+	async delete() {
+
+		try {
+
+			const response = await API.call('translations/delete', {id: this.id}, {method: 'POST'});
+
+			await this.ctx.load();
+
+			new SnackBar({
+				message: 'Deleted',
+				subtitle: response.message,
+				icon: 'fa fa-plus',
+			});
+		}
+
+		catch (e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async update(params) {
+
+		const data = {
+			method: 'POST',
+			form: new FormData(this.container),
+		}
+
+		try {
+
+			const response = await API.call('translations/update', {...params, id: this.id}, data);
+
+			await this.ctx.load();
+
+			if (response.warning) {
+
+				new SnackBar({
+					message: 'Nothing happened',
+					subtitle: response.message,
+					type: 'warning',
+				});
+			}
+
+			else {
+
+				new SnackBar({
+					message: 'Updated',
+					subtitle: response.message,
+					icon: 'fa fa-plus',
+				});
+			}
+
+		}
+		catch (e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
 	async expanded(node) {
 
-		if(!this.expandedConfig) {
+		if(!this.expand) {
 
 			return;
 		}
 
-		const editor = await this.expandedConfig.editor(node);
+		if(this.expand.editor == 'html') {
+
+			const editor =  new HTMLEditor();
+			node.appendChild(editor.container);
+			await editor.setup();
+
+			if(this.translation) {
+
+				editor.value = this.translation;
+			}
+
+			this.editor = editor;
+
+			return editor;
+		}
 	}
 }
 
