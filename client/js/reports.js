@@ -5047,7 +5047,7 @@ DataSourceTransformation.types.set('linear-regression', class DataSourceTransfor
 
 	async execute(response = []) {
 
-		if (!(this.options.columns.x || this.options.columns.y)) {
+		if (!(this.options.columns && (this.options.columns.x || this.options.columns.y))) {
 
 			return response;
 		}
