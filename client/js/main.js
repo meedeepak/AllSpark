@@ -2469,11 +2469,8 @@ class MultiSelect {
 
 			e.stopPropagation();
 
-			if(!this.optionsContainer) {
-
-				container.appendChild(this.options);
-				this.render();
-			}
+			container.appendChild(this.options);
+			this.render();
 
 			if(!container.classList.contains('stretched')) {
 
@@ -2512,6 +2509,7 @@ class MultiSelect {
 			this.options.querySelector('.modes-drop-down').classList.add('hidden');
 
 			search.value = '';
+			this.setPlaceholderText();
 		});
 
 		return container;
@@ -2830,6 +2828,20 @@ class MultiSelect {
 		this.recalculate();
 	}
 
+	setPlaceholderText() {
+
+		const search = this.container.querySelector('input[type=search]');
+
+		if(!this.selectedValues.size) {
+
+			return search.placeholder = 'Search...';
+		}
+
+		const [first] =  this.datalist.filter(x => x.value == this.selectedValues.values().next().value);
+		search.placeholder = first ? this.selectedValues.size > 1 ? `${first.name} and ${this.selectedValues.size - 1} more` : first.name : 'Search...';
+
+	}
+
 	/**
 	 * Recalculate shown items from the datalist based on any value in search box and their summary numbers in the footer.
 	 */
@@ -2845,9 +2857,7 @@ class MultiSelect {
 
 		if(!this.optionsContainer) {
 
-			const [first] =  this.datalist.filter(x => x.value == this.selectedValues.values().next().value);
-			search.placeholder = first ? this.selectedValues.size > 1 ? `${first.name} and ${this.selectedValues.size - 1} more` : first.name : 'Search...';
-
+			this.setPlaceholderText();
 			return;
 		}
 
@@ -2885,10 +2895,7 @@ class MultiSelect {
 			selected = this.options.querySelectorAll('.list input:checked').length,
 			firstSelected = this.options.querySelector('.list label.selected div > span');
 
-		search.placeholder = 'Search...';
-
-		if(firstSelected)
-			search.placeholder = selected > 1 ? `${firstSelected.textContent} and ${selected - 1} more` : firstSelected.textContent;
+		this.setPlaceholderText();
 
 		const footer = this.options.querySelector('footer');
 
