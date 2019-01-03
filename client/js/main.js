@@ -2469,8 +2469,11 @@ class MultiSelect {
 
 			e.stopPropagation();
 
-			container.appendChild(this.options);
-			this.render();
+			if(!this.optionsContainer) {
+
+				container.appendChild(this.options);
+				this.render();
+			}
 
 			if(!container.classList.contains('stretched')) {
 
@@ -2501,15 +2504,16 @@ class MultiSelect {
 
 		document.body.on('click', () => {
 
-			if(this.mode != 'stretch' && this.optionsContainer) {
-
-				this.options.classList.add('hidden');
-			}
-
-			this.options.querySelector('.modes-drop-down').classList.add('hidden');
-
 			search.value = '';
 			this.setPlaceholderText();
+
+			if(!this.optionsContainer) {
+
+				return;
+			}
+
+			this.options.classList.toggle('hidden', this.mode != 'stretch');
+			this.options.querySelector('.modes-drop-down').classList.add('hidden');
 		});
 
 		return container;
