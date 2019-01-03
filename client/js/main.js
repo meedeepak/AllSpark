@@ -2526,7 +2526,6 @@ class MultiSelect {
 			}
 		}
 
-		this.fireCallback('change');
 		this.recalculate();
 	}
 
@@ -2649,7 +2648,6 @@ class MultiSelect {
 					input.checked ? this.selectedValues.add(input.value.toString()) : this.selectedValues.delete(input.value.toString());
 				}
 
-				this.fireCallback('change');
 				this.recalculate();
 			});
 
