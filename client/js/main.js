@@ -2899,7 +2899,10 @@ class MultiSelect {
 			selected = this.options.querySelectorAll('.list input:checked').length,
 			firstSelected = this.options.querySelector('.list label.selected div > span');
 
-		this.setPlaceholderText();
+		search.placeholder = 'Search...';
+
+		if(firstSelected)
+			search.placeholder = selected > 1 ? `${firstSelected.textContent} and ${selected - 1} more` : firstSelected.textContent;
 
 		const footer = this.options.querySelector('footer');
 
