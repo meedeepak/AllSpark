@@ -1771,7 +1771,16 @@ class DataSourceFilter {
 			this.multiSelect.datalist = values;
 			this.multiSelect.multiple = this.multiple;
 
-			try{
+			try {
+
+				if(page instanceof Dashboards) {
+
+					return this.multiSelect.all();
+				}
+			}
+			catch(e) {}
+
+			try {
 
 				this.multiSelect.value = JSON.parse(this.default_value);
 			}
@@ -14323,7 +14332,7 @@ class DataSourceFilterForm {
 		if(response.dataset != '') {
 
 			response.dataset = parseFloat(response.dataset);
-			response.default_value = this.defaultValueMultiSelect.value.length == this.defaultValueMultiSelect.datalist.length ? 'VALUES:ALL' : JSON.stringify(this.defaultValueMultiSelect.value);
+			response.default_value = this.defaultValueMultiSelect.value.length == this.defaultValueMultiSelect.datalist.length ? '' : JSON.stringify(this.defaultValueMultiSelect.value);
 		}
 
 		return response;
@@ -14379,7 +14388,7 @@ class DataSourceFilterForm {
 
 		if(parseInt(this.datasetMultiSelect.value[0]) == this.filter.dataset) {
 
-			if(this.filter.default_value == 'VALUES:ALL') {
+			if(!this.filter.default_value) {
 
 				this.defaultValueMultiSelect.all();
 			}
