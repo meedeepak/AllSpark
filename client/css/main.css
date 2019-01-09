@@ -1435,7 +1435,7 @@ body#tinymce table tr {
 	margin-top: 10px;
 	padding: var(--gap);
 }
-.aaa {
+.translation-headers {
 	background: var(--color-surface);
 	padding: 5px
 }

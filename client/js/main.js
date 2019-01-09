@@ -3972,13 +3972,14 @@ class AddTranslations {
 
 			const div = document.createElement('div');
 			div.textContent = header;
-			div.classList.add('aaa');
+			div.classList.add('translation-headers');
 			translationList.appendChild(div);
 		}
 
 		translationList.classList.add('translation-grid');
 		translationList.style.display = 'grid';
-		translationList.style['grid-template-columns'] = `repeat(${fields.length}, 1fr)`;
+
+		translationList.style['grid-template-columns'] = new Array(fields.length - 2).fill('1fr').concat('100px', '100px').join(' ');
 
 		container.id = 'phrases-translations';
 
@@ -4069,13 +4070,13 @@ class AddTranslations {
 
 			const div = document.createElement('div');
 			div.textContent = header;
-			div.classList.add('aaa');
+			div.classList.add('translation-headers');
 			translationList.appendChild(div);
 		}
 
 		translationList.classList.add('translation-grid');
 		translationList.style.display = 'grid';
-		translationList.style['grid-template-columns'] = `repeat(${fields.length}, 1fr)`;
+		translationList.style['grid-template-columns'] = new Array(fields.length - 2).fill('1fr').concat('100px', '100px').join(' ');
 
 		container.id = 'phrases-translations';
 
@@ -4399,7 +4400,7 @@ class ObjectTranslationRow {
 		const colCount = container.querySelectorAll('label').length + 1;
 
 		container.querySelector('.translation-grid').style.display = 'grid';
-		container.querySelector('.translation-grid').style['grid-template-columns'] = `repeat(${colCount}, 1fr)`;
+		container.querySelector('.translation-grid').style['grid-template-columns'] = new Array(colCount - 2).fill('1fr').concat('100px', '100px').join(' ');
 
 		container.querySelector('.locales').appendChild(this.page.select(this.locale_id));
 
@@ -4482,7 +4483,7 @@ class ObjectTranslationRow {
 		this.formContainer.id = this.randomId;
 
 		container.querySelector('.translation-grid').style.display = 'grid';
-		container.querySelector('.translation-grid').style.gridTemplateColumns = 'repeat(3, 1fr)';
+		container.querySelector('.translation-grid').style.gridTemplateColumns = '1fr 100px 100px';
 
 		this.formContainer.querySelector('label[name=locales]').appendChild(this.page.select(this.locale_id));
 
