@@ -1445,6 +1445,14 @@ router.get('/settings/:tab?/:id?', API.serve(class extends HTMLAPI {
 					</form>
 				</section>
 			</div>
+			
+			<div class="setting-page translations-page hidden">
+				<section class="section" id="translations-list">
+				
+					<h1>Manage Translations</h1>
+					
+				</section>
+			</div>
 
 			<div class="setting-page roles-page hidden">
 

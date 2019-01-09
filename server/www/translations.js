@@ -91,17 +91,22 @@ class Translations extends API {
 
 		fields.forEach(x => updateData[x] = this.request.body.hasOwnProperty(x) ? this.request.body[x] : existingData[x]);
 		let message = '';
+		let result;
 
-		const result = await this.mysql.query(`
+		try {
+
+			result = await this.mysql.query(`
 			UPDATE tb_object_translations
 			SET ? WHERE id = ?
 			`,
-			[updateData, id],
-			"write"
-		);
+				[updateData, id],
+				"write"
+			);
 
+			message = `Updated ${updateData.phrase} to ${updateData.translation}`;
+		}
 
-		if (result.message == "(Rows matched: 1  Changed: 0  Warnings: 0") {
+		catch(e) {
 
 			[existingData] = await this.mysql.query(`
 					SELECT
@@ -121,11 +126,6 @@ class Translations extends API {
 
 			this.warning = true;
 			message = `Translation with ${existingData.phrase} to ${existingData.translation} already exists, please delete it first.`;
-		}
-
-		else {
-
-			message = `Updated ${updateData.phrase} to ${updateData.translation}`;
 		}
 
 		return {

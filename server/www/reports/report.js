@@ -423,7 +423,7 @@ exports.list = class extends API {
 
 		for (let row of results[0]) {
 
-			row = {...row, ...queryTranslationMapping[row.query_id]};
+			//row = {...row, ...queryTranslationMapping[row.query_id]};
 
 			row.roles = (reportRoleMapping[row.query_id] || {}).roles || [];
 			row.category_id = (reportRoleMapping[row.query_id] || {}).category_id || [];
