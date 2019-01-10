@@ -4114,7 +4114,7 @@ class TranslationsManager {
 				await editor.setup();
 
 				this.editor = {};
-				this.editor['translation'] = editor;
+				this.editor.translation = editor;
 			}
 		});
 
@@ -4132,9 +4132,9 @@ class TranslationsManager {
 
 			const params = {};
 
-			if(this.editor && this.editor['translation']) {
+			if(this.editor && this.editor.translation) {
 
-				params.translation = this.editor['translation'].value;
+				params.translation = this.editor.translation.value;
 			}
 
 			await this.insert(params);
@@ -4333,7 +4333,7 @@ class ObjectTranslationRow {
 
 		Object.assign(this, row);
 		this.page = page;
-		this.randomId = 'form-' + this.id;
+		this.formId = 'form-' + this.id;
 	}
 
 	get container() {
@@ -4482,7 +4482,7 @@ class ObjectTranslationRow {
 				</form>
 			</div>`;
 
-		this.formContainer.id = this.randomId;
+		this.formContainer.id = this.formId;
 
 		container.querySelector('.translation-grid').style.display = 'grid';
 		container.querySelector('.translation-grid').style.gridTemplateColumns = this.page.translationRowGridTemplateColumns;
@@ -4504,13 +4504,13 @@ class ObjectTranslationRow {
 			this.page.container.querySelector('#list-container').classList.add('hidden');
 			this.formContainer.classList.remove('hidden');
 
-			if(!this.page.container.querySelector(`#${this.randomId}`)) {
+			if(!this.page.container.querySelector(`#${this.formId}`)) {
 
 				this.page.container.appendChild(this.formContainer);
 			}
 			else {
 
-				this.page.container.querySelector(`#${this.randomId}`).classList.remove('hidden');
+				this.page.container.querySelector(`#${this.formId}`).classList.remove('hidden');
 			}
 
 			await this.expanded(this.formContainer.querySelector('.translation-editor'), 'translation');
@@ -4520,7 +4520,7 @@ class ObjectTranslationRow {
 
 			e.preventDefault();
 
-			this.page.container.querySelector(`#${this.randomId}`).classList.add('hidden');
+			this.page.container.querySelector(`#${this.formId}`).classList.add('hidden');
 			this.page.container.querySelector('#list-container').classList.remove('hidden');
 		});
 
@@ -4535,7 +4535,7 @@ class ObjectTranslationRow {
 				phrase: this.editor.phrase ? this.editor.phrase.value : this.phrase,
 			});
 
-			this.page.container.querySelector(`#${this.randomId}`).classList.add('hidden');
+			this.page.container.querySelector(`#${this.formId}`).classList.add('hidden');
 			this.page.container.querySelector('#list-container').classList.remove('hidden');
 		});
 
