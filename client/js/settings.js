@@ -499,7 +499,7 @@ Settings.list.set('phrasesTranslations', class PhrasesTranslations extends Setti
 
 		this.container = this.page.querySelector('.translations-page');
 
-		this.titleTranslations =  new AddTranslations({
+		this.titleTranslations =  new TranslationsManager({
 				owner: 'phrase'
 			});
 	}

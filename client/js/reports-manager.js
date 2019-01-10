@@ -767,7 +767,7 @@ ReportsManger.stages.set('configure-report', class ConfigureReport extends Repor
 			`);
 		}
 
-		const titleTranslations = new AddTranslations({
+		const titleTranslations = new TranslationsManager({
 			phrase: 'name',
 			owner: 'query',
 			owner_id: this.selectedReport.query_id,

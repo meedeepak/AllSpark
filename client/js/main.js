@@ -3877,7 +3877,7 @@ class FormatSQL {
 	}
 }
 
-class AddTranslations {
+class TranslationsManager {
 
 	constructor({owner, owner_id, phrase, expanded}) {
 
@@ -3961,7 +3961,7 @@ class AddTranslations {
 
 		const fields = ['Id', 'From', 'Locale', 'To', 'Save', 'Delete'];
 
-		if(this.phrase != 'phrase') {
+		if(this.owner != 'phrase') {
 
 			fields.splice(0, 2);
 			const node = container.querySelector('input[name=phrase]').parentElement;
@@ -3976,10 +3976,12 @@ class AddTranslations {
 			translationList.appendChild(div);
 		}
 
+		this.translationRowGridTemplateColumns = new Array(fields.length - 2).fill('1fr').concat('100px', '100px').join(' ');
+
 		translationList.classList.add('translation-grid');
 		translationList.style.display = 'grid';
 
-		translationList.style['grid-template-columns'] = new Array(fields.length - 2).fill('1fr').concat('100px', '100px').join(' ');
+		translationList.style.gridTemplateColumns = this.translationRowGridTemplateColumns;
 
 		container.id = 'phrases-translations';
 
@@ -4074,9 +4076,11 @@ class AddTranslations {
 			translationList.appendChild(div);
 		}
 
+		this.translationRowGridTemplateColumns = new Array(fields.length - 2).fill('1fr').concat('100px', '100px').join(' ');
+
 		translationList.classList.add('translation-grid');
 		translationList.style.display = 'grid';
-		translationList.style['grid-template-columns'] = new Array(fields.length - 2).fill('1fr').concat('100px', '100px').join(' ');
+		translationList.style['grid-template-columns'] = this.translationRowGridTemplateColumns;
 
 		container.id = 'phrases-translations';
 
@@ -4386,7 +4390,7 @@ class ObjectTranslationRow {
 			</div>
 		`;
 
-		if(this.page.phrase != 'phrase') {
+		if(this.page.owner != 'phrase') {
 
 			let node = container.querySelector('input[name=phrase]').parentNode;
 			node.parentNode.removeChild(node);
@@ -4400,7 +4404,7 @@ class ObjectTranslationRow {
 		const colCount = container.querySelectorAll('label').length + 1;
 
 		container.querySelector('.translation-grid').style.display = 'grid';
-		container.querySelector('.translation-grid').style['grid-template-columns'] = new Array(colCount - 2).fill('1fr').concat('100px', '100px').join(' ');
+		container.querySelector('.translation-grid').style.gridTemplateColumns = this.page.translationRowGridTemplateColumns;
 
 		container.querySelector('.locales').appendChild(this.page.select(this.locale_id));
 
@@ -4483,7 +4487,7 @@ class ObjectTranslationRow {
 		this.formContainer.id = this.randomId;
 
 		container.querySelector('.translation-grid').style.display = 'grid';
-		container.querySelector('.translation-grid').style.gridTemplateColumns = '1fr 100px 100px';
+		container.querySelector('.translation-grid').style.gridTemplateColumns = this.page.translationRowGridTemplateColumns;
 
 		this.formContainer.querySelector('label[name=locales]').appendChild(this.page.select(this.locale_id));
 
