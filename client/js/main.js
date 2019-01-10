@@ -3944,7 +3944,7 @@ class TranslationsManager {
 						<span> Phrase</span>
 						<input type="text" name="phrase" required>
 					</label>
-					<label name="locale_id">
+					<label class="locale-select">
 						<span> Locale</span>
 					</label>
 					<label>
@@ -3985,7 +3985,7 @@ class TranslationsManager {
 
 		container.id = 'phrases-translations';
 
-		const selectLabel = container.querySelector('label[name=locale_id]');
+		const selectLabel = container.querySelector('.locale-select');
 
 		selectLabel.appendChild(this.select());
 
@@ -3997,7 +3997,7 @@ class TranslationsManager {
 			container.querySelector('#add-translation-form-container').classList.remove('hidden');
 		});
 
-		container.querySelector('input[name=back]').addEventListener('click', e => {
+		container.querySelector('input[name=back]').addEventListener('click', () => {
 
 			container.querySelector('#list-container').classList.remove('hidden');
 			container.querySelector('#add-translation-form-container').classList.add('hidden');
@@ -4047,14 +4047,14 @@ class TranslationsManager {
 					</label>
 				</div>
 				<form class="form block" id="add-translation-form">
-					<label name="phrase">
+					<label>
 						<span> Phrase</span>
 						<div class="phrase-editor"></div>
 					</label>
-					<label name="locale_id">
+					<label class="locale-select">
 						<span> Locale</span>
 					</label>
-					<label name="translation">
+					<label>
 						<span> Translation</span>
 						<div class="translation-editor"></div>
 					</label>
@@ -4084,7 +4084,7 @@ class TranslationsManager {
 
 		container.id = 'phrases-translations';
 
-		const selectLabel = container.querySelector('label[name=locale_id]');
+		const selectLabel = container.querySelector('.locale-select');
 
 		selectLabel.appendChild(this.select());
 
@@ -4118,7 +4118,7 @@ class TranslationsManager {
 			}
 		});
 
-		container.querySelector('input[name=back]').addEventListener('click', e => {
+		container.querySelector('input[name=back]').addEventListener('click', () => {
 
 			container.querySelector('#list-container').classList.remove('hidden');
 			container.querySelector('#add-translation-form-container').classList.add('hidden');
@@ -4318,7 +4318,7 @@ class TranslationsManager {
 		this.container.querySelector('#phrases-translations-search').insertAdjacentElement('beforeend', this.searchBarFilter.globalSearch.container);
 		this.container.querySelector('#translations-advanced-search').appendChild(this.searchBarFilter.container);
 
-		this.searchBarFilter.on('change', async e => {
+		this.searchBarFilter.on('change', async () => {
 
 			await this.render();
 		});
@@ -4401,8 +4401,6 @@ class ObjectTranslationRow {
 
 		container.classList.add('translation-row');
 
-		const colCount = container.querySelectorAll('label').length + 1;
-
 		container.querySelector('.translation-grid').style.display = 'grid';
 		container.querySelector('.translation-grid').style.gridTemplateColumns = this.page.translationRowGridTemplateColumns;
 
@@ -4474,7 +4472,7 @@ class ObjectTranslationRow {
 						<span> From</span>
 						<div class="phrase-editor"></div>
 					</label>
-					<label name="locales">
+					<label class="locale-select">
 						<span> Locale</span>
 					</label>
 					<label>
@@ -4489,7 +4487,7 @@ class ObjectTranslationRow {
 		container.querySelector('.translation-grid').style.display = 'grid';
 		container.querySelector('.translation-grid').style.gridTemplateColumns = this.page.translationRowGridTemplateColumns;
 
-		this.formContainer.querySelector('label[name=locales]').appendChild(this.page.select(this.locale_id));
+		this.formContainer.querySelector('.locale-select').appendChild(this.page.select(this.locale_id));
 
 		this.formContainer.querySelector('.translation-editor').parentNode.style.maxWidth = 'unset';
 
