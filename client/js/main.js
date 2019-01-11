@@ -3744,6 +3744,20 @@ class NotificationBar {
 	}
 }
 
+class SortTable {
+
+	constructor({table} = {}) {
+		console.log(table);
+		this.table = table;
+		debugger
+	}
+
+	sort() {
+
+		debugger
+	}
+}
+
 class FormatSQL {
 
 	constructor(query) {
